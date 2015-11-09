@@ -108,7 +108,11 @@ code for more information.
   </phase>
 
   <phase id="phase.counts">
-    <active pattern="counts"/>
+      <active pattern="counts_tables"/>
+      <active pattern="counts_refs"/>
+      <active pattern="counts_figs"/>
+      <active pattern="counts_equations"/>
+      <active pattern="counts_pages"/>
   </phase>
 
   <phase id="phase.pub-date">
@@ -116,12 +120,10 @@ code for more information.
   </phase>
 
   <phase id="phase.volume">
-    <active pattern="volume"/>
     <active pattern="volume_notempty"/>
   </phase>
   
   <phase id="phase.issue">
-    <active pattern="issue"/>
     <active pattern="issue_notempty"/>
   </phase>
 
@@ -261,6 +263,7 @@ code for more information.
 
   <phase id="phase.funding-group">
     <active pattern="funding-group"/>
+    <active pattern="funding-group_elements"/>
   </phase>
 
   <phase id="phase.aff_country-attrs">
@@ -447,7 +450,7 @@ code for more information.
 
   <pattern id="abstract">
     <rule context="article[@article-type='research-article'] | article[@article-type='review-article']">
-      <assert test="count(front/article-meta/abstract) > 0">
+      <assert test="count(front/article-meta/abstract | front/article-meta/trans-abstract) > 0">
         Element 'article-meta': Missing element abstract.
       </assert>
     </rule>
@@ -504,34 +507,68 @@ code for more information.
     </rule>
   </pattern>
 
-  <pattern id="counts">
+  <pattern id="counts_tables">
     <title>
-      Make sure the total number of tables, figures, equations and pages are present.
-
-      Page-count cannot be checked if fpage or lpage present non-digit values.
+      Make sure the total number of tables are correct.
     </title>
 
-    <rule context="article">
-      <assert test="front/article-meta/counts/table-count/@count = count(//table-wrap)">
-        Element 'counts': Missing element or wrong value in table-count.
+    <rule context="article/front/article-meta/counts/table-count">
+      <assert test="@count = count(//table-wrap)">
+        Element 'table-count': Wrong value in table-count.
       </assert>
-      <assert test="front/article-meta/counts/ref-count/@count = count(//ref)">
-        Element 'counts': Missing element or wrong value in ref-count.
+    </rule>
+  </pattern>
+
+  <pattern id="counts_refs">
+    <title>
+      Make sure the total number of refs are correct.
+    </title>
+
+    <rule context="article/front/article-meta/counts/ref-count">
+      <assert test="@count = count(//ref)">
+        Element 'ref-count': Wrong value in ref-count.
       </assert>
-      <assert test="front/article-meta/counts/fig-count/@count = count(//fig)">
-        Element 'counts': Missing element or wrong value in fig-count.
+    </rule>
+  </pattern>
+
+  <pattern id="counts_figs">
+    <title>
+      Make sure the total number of figures are correct.
+    </title>
+
+    <rule context="article/front/article-meta/counts/fig-count">
+      <assert test="@count = count(//fig)">
+        Element 'fig-count': Wrong value in fig-count.
       </assert>
-      <assert test="front/article-meta/counts/equation-count/@count = count(//disp-formula)">
-        Element 'counts': Missing element or wrong value in equation-count.
+    </rule>
+  </pattern>
+
+  <pattern id="counts_equations">
+    <title>
+      Make sure the total number of equations are correct.
+    </title>
+
+    <rule context="article/front/article-meta/counts/equation-count">
+      <assert test="@count = count(//disp-formula)">
+        Element 'equation-count': Wrong value in equation-count.
       </assert>
-      <assert test="(front/article-meta/lpage = 0 and
-                     front/article-meta/fpage = 0 and
-                     front/article-meta/counts/page-count/@count = 0) or 
-                     (regexp:test(front/article-meta/fpage, '\D', 'i') or
-                      regexp:test(front/article-meta/lpage, '\D', 'i')) or
-                     string-length(front/article-meta/elocation-id) > 0 or
-                     (front/article-meta/counts/page-count/@count = ((front/article-meta/lpage - front/article-meta/fpage) + 1))">
-        Element 'counts': Missing element or wrong value in page-count.
+    </rule>
+  </pattern>
+
+  <pattern id="counts_pages">
+    <title>
+      Make sure the total number of pages are correct.
+    </title>
+
+    <rule context="article/front/article-meta/counts/page-count">
+      <assert test="(/article/front/article-meta/lpage = 0 and
+                     /article/front/article-meta/fpage = 0 and
+                     @count = 0) or 
+                     (regexp:test(/article/front/article-meta/fpage, '\D', 'i') or
+                      regexp:test(/article/front/article-meta/lpage, '\D', 'i')) or
+                     string-length(/article/front/article-meta/elocation-id) > 0 or
+                     (@count = ((/article/front/article-meta/lpage - /article/front/article-meta/fpage) + 1))">
+        Element 'page-count': Wrong value in page-count.
       </assert>
     </rule>
   </pattern>
@@ -550,34 +587,10 @@ code for more information.
     </rule>
   </pattern>
 
-  <pattern id="volume">
-    <title>
-      Make sure the volume is present and is not empty.
-    </title>
-
-    <rule context="article/front/article-meta">
-      <assert test="count(volume) = 1">
-        Element 'article-meta': Missing element volume.
-      </assert>
-    </rule>
-  </pattern>
-
   <pattern id="volume_notempty" is-a="assert-not-empty">
     <param name="base_context" value="article/front/article-meta/volume"/>
     <param name="assert_expr" value="text()"/>
     <param name="err_message" value="'Element cannot be empty.'"/>
-  </pattern>
-
-  <pattern id="issue">
-    <title>
-      Make sure the issue is present and is not empty.
-    </title>
-
-    <rule context="article/front/article-meta">
-      <assert test="count(issue) = 1">
-        Element 'article-meta': Missing element issue.
-      </assert>
-    </rule>
   </pattern>
 
   <pattern id="issue_notempty" is-a="assert-not-empty">
@@ -778,7 +791,8 @@ code for more information.
                     @ref-type = 'sec' or
                     @ref-type = 'supplementary-material' or
                     @ref-type = 'table' or
-                    @ref-type = 'table-fn'">
+                    @ref-type = 'table-fn' or
+                    @ref-type = 'boxed-text'">
         Element 'xref', attribute ref-type: Invalid value "<value-of select="@ref-type"/>".
       </assert>
     </rule>
@@ -1025,9 +1039,7 @@ code for more information.
     </title>
 
     <rule context="article[@article-type]">
-      <assert test="@article-type = 'abstract' or 
-                    @article-type = 'announcement' or
-                    @article-type = 'other' or
+      <assert test="@article-type = 'other' or
                     @article-type = 'article-commentary' or 
                     @article-type = 'case-report' or 
                     @article-type = 'editorial' or
@@ -1053,7 +1065,7 @@ code for more information.
     </title>
 
     <rule context="article[@specific-use]">
-      <assert test="@specific-use = 'sps-1.2'">
+      <assert test="@specific-use = 'sps-1.3'">
         Element 'article', attribute specific-use: Invalid value '<value-of select="@specific-use"/>'.
       </assert>
     </rule>
@@ -1180,7 +1192,8 @@ code for more information.
       <assert test="@ext-link-type">
         Element 'ext-link': Missing attribute ext-link-type.
       </assert>
-      <assert test="@ext-link-type = 'uri'">
+      <assert test="@ext-link-type = 'uri' or
+                    @ext-link-type = 'clinical-trial'">
         Element 'ext-link', attribute ext-link-type: Invalid value '<value-of select="@ext-link-type"/>'.
       </assert>
       <assert test="@xlink:href">
@@ -1425,6 +1438,18 @@ code for more information.
     <rule context="article/back//fn[@fn-type='financial-disclosure']">
       <assert test="/article/front/article-meta/funding-group/funding-statement">
         Element 'fn': Missing element funding-statement.
+      </assert>
+    </rule>
+  </pattern>
+
+  <pattern id="funding-group_elements">
+    <title>
+      Make sure mandatory child elements are present.  
+    </title>
+
+    <rule context="article/front/article-meta/funding-group">
+      <assert test="award-group">
+        Element 'funding-group': Missing element award-group.
       </assert>
     </rule>
   </pattern>
