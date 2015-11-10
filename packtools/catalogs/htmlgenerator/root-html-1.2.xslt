@@ -67,6 +67,13 @@
             </div>
           </div>
 
+          <a id="subject"></a>
+          <div class="row">
+            <div class="col-md-12">
+              <h3><strong class="pull-right"><xsl:apply-templates select="article//article-categories"/></strong></h3>
+            </div>
+          </div>
+
           <a id="contrib-group"></a>
           <div class="row">
             <div class="col-md-12">
@@ -242,16 +249,18 @@
                 </a>
               </li>
               <!-- funding -->
-              <li>
-                <a href="#funding-group">
-                  &#187;
-                  <xsl:choose>
-                    <xsl:when test="$article_lang='pt'">Financiamento</xsl:when>
-                    <xsl:when test="$article_lang='es'">Financiamiento</xsl:when>
-                    <xsl:otherwise>Funding</xsl:otherwise>
-                  </xsl:choose>
-                </a>
-              </li>
+              <xsl:if test="article//funding-group">
+                <li>
+                  <a href="#funding-group">
+                    &#187;
+                    <xsl:choose>
+                      <xsl:when test="$article_lang='pt'">Financiamento</xsl:when>
+                      <xsl:when test="$article_lang='es'">Financiamiento</xsl:when>
+                      <xsl:otherwise>Funding</xsl:otherwise>
+                    </xsl:choose>
+                  </a>
+                </li>
+              </xsl:if>
               <!-- /funding -->
 
               <!-- abstract -->
@@ -841,6 +850,7 @@
 
     <!-- ARTICLE CATEGORIES -->
     <xsl:template match="article//article-categories">
+      <!--
       <ul class="article-categories">
         <xsl:for-each select="subj-group">
           <li class="article-categories {@subj-group-type}">
@@ -848,6 +858,8 @@
           </li>
         </xsl:for-each>
       </ul>
+      -->
+      <span class="subject"><xsl:value-of select="subj-group[@subj-group-type='heading']/subject/text()"/></span>
     </xsl:template>
 
     <!-- AFF -->
