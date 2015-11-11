@@ -83,9 +83,9 @@
             </div>
           </div>
 
-          <div class="row">
-            <!-- about authors -->
-            <xsl:if test="article//author-notes | article//aff">
+          <!-- about authors -->
+          <xsl:if test="article//author-notes | article//aff">
+            <div class="row">
               <div class="col-md-12">
                 <div class="panel panel-default">
 
@@ -100,7 +100,7 @@
                     </div>
                     <div class="panel-body">
                       <ul class="affiliations list-unstyled">
-                        <xsl:apply-templates select="article/front/article-meta/aff"/>
+                        <xsl:apply-templates select="article/front/article-meta//aff"/>
                       </ul>
                     </div>
                   </xsl:if>
@@ -130,10 +130,13 @@
 
                 </div>
               </div>
-            </xsl:if>
-            <!-- /about authors -->
-            <!-- license -->
-            <xsl:if test="article//permissions">
+            </div>
+          </xsl:if>
+          <!-- /about authors -->
+
+          <!-- license -->
+          <xsl:if test="article//permissions">
+            <div class="row">
               <div class="col-md-12">
                 <div class="panel panel-default">
                   <div class="panel-heading">
@@ -165,49 +168,9 @@
                   </div>
                 </div>
               </div>
-            </xsl:if>
-            <!-- /license -->
-
-            <!-- funding-groups -->
-            <xsl:if test="article//funding-group">
-              <div class="col-md-12 ">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <a id="funding-group"></a>
-                    <xsl:choose>
-                      <xsl:when test="$article_lang='pt'">Financiamento:</xsl:when>
-                      <xsl:when test="$article_lang='es'">Financiamiento:</xsl:when>
-                      <xsl:otherwise>Funding:</xsl:otherwise>
-                    </xsl:choose>
-                  </div>
-                  <div class="panel-body">
-                    <div class="funding-group">
-                      <ul>
-                        <xsl:choose>
-                          <xsl:when test="$is_translation = 'True' ">
-                            <xsl:choose>
-                              <xsl:when test="article/sub-article[@article-type='translation' and @xml:lang=$article_lang]/front-stub/funding-group">
-                                <xsl:apply-templates select="article/sub-article[@article-type='translation' and @xml:lang=$article_lang]/front-stub/funding-group"/>
-                              </xsl:when>
-                              <xsl:otherwise>
-                                <xsl:apply-templates select="article/front/article-meta/funding-group"/>
-                              </xsl:otherwise>
-                            </xsl:choose>
-                          </xsl:when>
-                          <xsl:otherwise>
-                            <xsl:apply-templates select="article/front/article-meta/funding-group"/>
-                          </xsl:otherwise>
-                        </xsl:choose>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!-- /funding-group -->
-            </xsl:if>
-
-          </div>
-
+            </div>
+          </xsl:if>
+          <!-- /license -->
         </div> <!-- article-meta -->
 
         <div class="article-content container">
@@ -248,23 +211,9 @@
                   </xsl:choose>
                 </a>
               </li>
-              <!-- funding -->
-              <xsl:if test="article//funding-group">
-                <li>
-                  <a href="#funding-group">
-                    &#187;
-                    <xsl:choose>
-                      <xsl:when test="$article_lang='pt'">Financiamento</xsl:when>
-                      <xsl:when test="$article_lang='es'">Financiamiento</xsl:when>
-                      <xsl:otherwise>Funding</xsl:otherwise>
-                    </xsl:choose>
-                  </a>
-                </li>
-              </xsl:if>
-              <!-- /funding -->
 
               <!-- abstract -->
-              <xsl:if test="article/front/article-meta/abstract[@xml:lang=$article_lang]">
+              <xsl:if test="//abstract | //trans-abstract[@xml:lang=$article_lang]">
                 <li>
                     <a href="#abstract">
                       &#187;
@@ -383,7 +332,7 @@
 
             <div class="abstract-keywords-wrapper">
               <!-- abstract -->
-              <xsl:if test="//abstract[@xml:lang=$article_lang] | //trans-abstract[@xml:lang=$article_lang]">
+              <xsl:if test="//abstract | //trans-abstract[@xml:lang=$article_lang]">
                 <a id="abstract"></a>
                 <h1>
                   <xsl:choose>
@@ -408,7 +357,7 @@
                     </xsl:when>
                     <!-- else: article/front/article-meta/abstract/ -->
                     <xsl:otherwise>
-                      <xsl:apply-templates select="article/front/article-meta/abstract[@xml:lang=$article_lang]"/>
+                      <xsl:apply-templates select="article/front/article-meta/abstract"/>
                     </xsl:otherwise>
                   </xsl:choose>
                 </div>
@@ -568,7 +517,7 @@
                   <xsl:when test="$is_translation = 'True' ">
                     <xsl:choose>
                       <xsl:when test="article/sub-article[@article-type='translation' and @xml:lang=$article_lang]//table-wrap">
-                        <xsl:apply-templates select="article/sub-article[@article-type='translation' and @xml:lang=$article_lang]//table-wrap"/>
+                        <xsl:apply-templates select="article/sub-article[@article-type='translation' and @xml:lang=$article_lang]//table-wrap"  mode="scift-tables-section" />
                       </xsl:when>
                       <xsl:otherwise>
                         <xsl:apply-templates select="article/body//table-wrap"/>
@@ -649,7 +598,7 @@
         <a id="back_{@rid}" class="xref_id" />
       </xsl:if>
       <a href="#{@rid}" class="xref_href">
-        <xsl:apply-templates/>
+        <sup><xsl:apply-templates/></sup>
       </a>
     </xsl:template>
     <!-- /XREF -->
@@ -790,7 +739,7 @@
             </xsl:choose>
         </xsl:when>
         <xsl:otherwise>
-            <xsl:apply-templates />
+            <sup><xsl:apply-templates /></sup>
           </xsl:otherwise>
         </xsl:choose>
       </a>
@@ -850,20 +799,11 @@
 
     <!-- ARTICLE CATEGORIES -->
     <xsl:template match="article//article-categories">
-      <!--
-      <ul class="article-categories">
-        <xsl:for-each select="subj-group">
-          <li class="article-categories {@subj-group-type}">
-            <xsl:value-of select="subject"/>
-          </li>
-        </xsl:for-each>
-      </ul>
-      -->
       <span class="subject"><xsl:value-of select="subj-group[@subj-group-type='heading']/subject/text()"/></span>
     </xsl:template>
 
     <!-- AFF -->
-    <xsl:template match="article/front/article-meta/aff">
+    <xsl:template match="article/front/article-meta//aff">
       <li id="{@id}" class="aff">
           <div>
             <sup class="xref big">
@@ -905,6 +845,9 @@
 
     <xsl:template match="author-notes/corresp">
       <div class="corresp">
+        <xsl:if test="@id">
+          <a id="{@id}"><sup class="xref big"><xsl:value-of select="@id"/></sup></a>&#160;
+        </xsl:if>
         <xsl:apply-templates/>
       </div>
     </xsl:template>
@@ -1043,11 +986,7 @@
 
     <!-- FUNDING GROUP -->
     <xsl:template match="article//funding-group">
-      <xsl:for-each select="funding-statement">
-        <li class="funding-statement">
-          <xsl:apply-templates select="."/>
-        </li>
-      </xsl:for-each>
+      <!-- "não deve ser apresentado, ficará visível apenas a informação de financiamento em nota ou em agradecimento" -->
     </xsl:template>
 
     <xsl:template match="fig-count | table-count | equation-count | ref-count | page-count">
@@ -1162,13 +1101,17 @@
 
     <!-- TABLE-WRAP -->
     <xsl:template match="table-wrap">
-      <a id="{@id}"></a>
-      <span class="label_caption">
-        <xsl:apply-templates select="label | caption" mode="scift-label-caption-graphic"/>
-      </span>
-      <xsl:apply-templates select="graphic | table"/>
-      <xsl:apply-templates select="table-wrap-foot"/>
-      <xsl:apply-templates mode="footnote" select=".//fn"/>
+      <div id="table_{@id}" class="row table">
+        <a id="{@id}"></a>
+        <div class="col-md-3 col-sm-4">
+          <xsl:apply-templates select="graphic | table"/>
+        </div>
+        <div class="col-md-5 col-sm-4">
+          <xsl:if test="label | caption">
+            <xsl:apply-templates select="label | caption" mode="scift-label-caption-graphic"/>
+          </xsl:if>
+        </div>
+      </div>
     </xsl:template>
 
     <xsl:template match="table-wrap" mode="scift-standard">
@@ -1251,10 +1194,10 @@
     <xsl:template match="fig" mode="scift-standard">
       <div class="row">
         <figure id="{@id}" class="figure">
-          <div class="col-md-4">
+          <div class="col-md-3 col-sm-4">
             <xsl:apply-templates select="graphic|media"/>
           </div>
-          <div class="col-md-8">
+          <div class="col-md-5 col-sm-4">
             <figcaption class="label_caption">
               <xsl:apply-templates select="label | caption" mode="scift-label-caption-graphic"/>
             </figcaption>
@@ -1506,12 +1449,61 @@
     </xsl:template>
 
     <xsl:template match="ref">
+      <xsl:choose>
+        <xsl:when test="label and mixed-citation"> <!-- temos que o label e o começo do mixed-citation é igual -->
+          <xsl:variable name="mixed_citation_slice"><xsl:value-of select="substring(mixed-citation,1,string-length(label))"/></xsl:variable>
+          <xsl:variable name="mixed_citation_substring"><xsl:value-of select="substring(mixed-citation,string-length(label) + 1,string-length(mixed-citation))"/></xsl:variable>
+          <xsl:choose>
+            <xsl:when test="$mixed_citation_slice=label"> <!-- o label e o começo do mixed-citation é igual, fatiamos -->
+              <li>
+                <sup class="xref big"><xsl:value-of select="label"/></sup>
+                <div class="ref-mixed-citation">
+                  <a id="{@id}"/>
+                  <xsl:value-of select="$mixed_citation_substring"/>
+                </div>
+              </li>
+            </xsl:when>
+            <xsl:otherwise><!-- o label é diferente do mixed-citation -->
+              <li>
+                <sup class="xref big"><xsl:value-of select="label"/></sup>
+                <div class="ref-mixed-citation">
+                  <a id="{@id}"/>
+                  <xsl:value-of select="mixed-citation"/>
+                </div>
+              </li>
+            </xsl:otherwise>
+           </xsl:choose>
+        </xsl:when>
+        <xsl:when test="label"> <!-- temos só o label sem mixed citation -->
+          <li>
+            <sup class="xref big"><xsl:value-of select="label"/></sup>
+            <div class="ref-mixed-citation">
+              <a id="{@id}"/>
+              <xsl:apply-templates select="node()"/>
+            </div>
+          </li>
+        </xsl:when>
+        <xsl:otherwise><!-- sem label e sem mixed citation tenta resovler o node() -->
+          <li>
+            <sup class="xref big">&#8224;</sup>
+            <div class="ref-mixed-citation">
+              <a id="{@id}"/>
+              <xsl:apply-templates select="node()"/>
+            </div>
+          </li>
+        </xsl:otherwise>
+      </xsl:choose>
+<!--
       <li>
         <sup class="xref big">
           <xsl:choose>
             <xsl:when test="label and mixed-citation">
-              <xsl:if test="substring(mixed-citation,1,string-length(label))!=label">
-                <xsl:value-of select="label"/>
+              <label for="{@id}"><xsl:value-of select="label"/></label>
+              <xsl:variable name="mixed_citation_slice"><xsl:value-of select="substring(mixed-citation,1,string-length(label))"/></xsl:variable>
+              <span class="substring"><xsl:value-of select="label"/></span>
+
+              <xsl:if test="$mixed_citation_slice=label">
+                <xsl:variable name="mixed_citation_substring"><xsl:value-of select="substring(mixed-citation,string-length(label),string-length(mixed-citation))"/></xsl:variable>
               </xsl:if>
             </xsl:when>
             <xsl:when test="label">
@@ -1531,6 +1523,7 @@
           </xsl:choose>
         </div>
       </li>
+-->
     </xsl:template>
 
     <!-- FN-GROUP -->
